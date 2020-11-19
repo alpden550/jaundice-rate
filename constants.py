@@ -8,3 +8,5 @@ TEST_ARTICLES = [
     "https://inosmi.ru/military/20201119/248572686.html",
     "https://inosmi.ru/politic/20201119/248573102.html",
 ]
+
+ASYNC_TIMEOUT = 5
