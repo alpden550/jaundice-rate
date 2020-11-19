@@ -3,26 +3,11 @@ import asyncio
 import aiofiles
 import aiohttp
 import pymorphy2
+from anyio import create_task_group
 
 import constants
 import text_tools
 from adapters.inosmi_ru import sanitize
-
-
-async def fetch(session, url, morph):
-    async with session.get(url) as response:
-        response.raise_for_status()
-        content = await response.text()
-
-        sanitazed_text = sanitize(content, plaintext=True)
-        return await scoore_text(morph, sanitazed_text)
-
-
-async def scoore_text(morph: pymorphy2.MorphAnalyzer, text: str):
-    words = text_tools.split_by_words(morph=morph, text=text)
-    negative_words = await get_words(constants.NEGATIVE_WORDS)
-    print(negative_words)
-    print(text_tools.calculate_jaundice_rate(words, negative_words))
 
 
 async def get_words(path: str) -> list:
@@ -33,11 +18,42 @@ async def get_words(path: str) -> list:
     return words
 
 
+async def fetch(session: aiohttp.ClientSession, url: str):
+    async with session.get(url) as response:
+        response.raise_for_status()
+        return await response.text()
+
+
+async def score_text(morph: pymorphy2.MorphAnalyzer, text: str, negative: list):
+    words = text_tools.split_by_words(morph=morph, text=text)
+    return text_tools.calculate_jaundice_rate(words, negative)
+
+
+async def process_article(
+        session: aiohttp.ClientSession,
+        url: str,
+        charged_words: list,
+        morph: pymorphy2.MorphAnalyzer,
+        result: list,
+):
+    html = await fetch(session=session, url=url)
+    text = sanitize(html=html, plaintext=True)
+
+    score = await score_text(morph=morph, text=text, negative=charged_words)
+    return result.append({"URL": url, "Рейтинг": score, "Слов в статье": len(text)})
+
+
 async def main():
+    negative_words = await get_words(path=constants.NEGATIVE_WORDS)
     morph = pymorphy2.MorphAnalyzer()
     async with aiohttp.ClientSession() as session:
-        html = await fetch(session, 'https://inosmi.ru/economic/20190629/245384784.html', morph)
-        print(html)
+        results = []
+        for url in constants.TEST_ARTICLES:
+            async with create_task_group() as tg:
+                await tg.spawn(process_article, session, url, negative_words, morph, results)
+
+        print(*results)
 
 
-asyncio.run(main())
+if __name__ == '__main__':
+    asyncio.run(main())
