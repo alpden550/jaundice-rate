@@ -4,7 +4,7 @@ import aiofiles
 import aiohttp
 import pymorphy2
 from anyio import create_task_group
-
+from async_timeout import timeout
 import constants
 import text_tools
 import statuses
@@ -45,13 +45,16 @@ async def process_article(
         "Статус": None,
     }
     try:
-        html = await fetch(session=session, url=url)
-        text = sanitize(html=html, plaintext=True)
-        score = await score_text(morph=morph, text=text, negative=charged_words)
+        async with timeout(constants.ASYNC_TIMEOUT):
+            html = await fetch(session=session, url=url)
+            text = sanitize(html=html, plaintext=True)
+            score = await score_text(morph=morph, text=text, negative=charged_words)
     except aiohttp.ClientError:
         about['Статус'] = statuses.ProcessingStatus.FETCH_ERROR.value
     except adapters.ArticleNotFound:
         about['Статус'] = statuses.ProcessingStatus.PARSING_ERROR.value
+    except asyncio.TimeoutError:
+        about['Статус'] = statuses.ProcessingStatus.TIMEOUT.value
     else:
         about['Статус'] = statuses.ProcessingStatus.OK.value
         about['Рейтинг'] = score
