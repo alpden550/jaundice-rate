@@ -4,11 +4,9 @@ import aiofiles
 import aiohttp
 import pymorphy2
 
+import constants
 import text_tools
 from adapters.inosmi_ru import sanitize
-
-NEGATIVE_WORDS = "charged_dict/negative_words.txt"
-POSITIVE_WORDS = "charged_dict/positive_words.txt"
 
 
 async def fetch(session, url, morph):
@@ -22,7 +20,7 @@ async def fetch(session, url, morph):
 
 async def scoore_text(morph: pymorphy2.MorphAnalyzer, text: str):
     words = text_tools.split_by_words(morph=morph, text=text)
-    negative_words = await get_words(NEGATIVE_WORDS)
+    negative_words = await get_words(constants.NEGATIVE_WORDS)
     print(negative_words)
     print(text_tools.calculate_jaundice_rate(words, negative_words))
 
