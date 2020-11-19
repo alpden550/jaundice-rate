@@ -8,6 +8,7 @@ from anyio import create_task_group
 import constants
 import text_tools
 import statuses
+import adapters
 from adapters.inosmi_ru import sanitize
 
 
@@ -49,6 +50,8 @@ async def process_article(
         score = await score_text(morph=morph, text=text, negative=charged_words)
     except aiohttp.ClientError:
         about['Статус'] = statuses.ProcessingStatus.FETCH_ERROR.value
+    except adapters.ArticleNotFound:
+        about['Статус'] = statuses.ProcessingStatus.PARSING_ERROR.value
     else:
         about['Статус'] = statuses.ProcessingStatus.OK.value
         about['Рейтинг'] = score
