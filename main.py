@@ -7,6 +7,7 @@ from anyio import create_task_group
 
 import constants
 import text_tools
+import statuses
 from adapters.inosmi_ru import sanitize
 
 
@@ -34,13 +35,26 @@ async def process_article(
         url: str,
         charged_words: list,
         morph: pymorphy2.MorphAnalyzer,
-        result: list,
+        results: list,
 ):
-    html = await fetch(session=session, url=url)
-    text = sanitize(html=html, plaintext=True)
+    about = {
+        "URL": url,
+        "Рейтинг": None,
+        "Слов в статье": None,
+        "Статус": None,
+    }
+    try:
+        html = await fetch(session=session, url=url)
+        text = sanitize(html=html, plaintext=True)
+        score = await score_text(morph=morph, text=text, negative=charged_words)
+    except aiohttp.ClientError:
+        about['Статус'] = statuses.ProcessingStatus.FETCH_ERROR.value
+    else:
+        about['Статус'] = statuses.ProcessingStatus.OK.value
+        about['Рейтинг'] = score
+        about['Слов в статье'] = len(text)
 
-    score = await score_text(morph=morph, text=text, negative=charged_words)
-    return result.append({"URL": url, "Рейтинг": score, "Слов в статье": len(text)})
+    results.append(about)
 
 
 async def main():
