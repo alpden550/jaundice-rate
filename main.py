@@ -1,14 +1,18 @@
 import asyncio
+import time
+from contextlib import asynccontextmanager
 
 import aiofiles
 import aiohttp
 import pymorphy2
 from anyio import create_task_group
 from async_timeout import timeout
-import constants
-import text_tools
-import statuses
+from loguru import logger
+
 import adapters
+import constants
+import statuses
+import text_tools
 from adapters.inosmi_ru import sanitize
 
 
@@ -18,6 +22,14 @@ async def get_words(path: str) -> list:
         async for line in wf:
             words.append(line.strip())
     return words
+
+
+@asynccontextmanager
+async def measure_execution_time():
+    start = time.monotonic()
+    yield
+    finished = round(time.monotonic() - start, 2)
+    logger.info(f"Анализ закончен за {finished} сек.")
 
 
 async def fetch(session: aiohttp.ClientSession, url: str):
@@ -48,7 +60,9 @@ async def process_article(
         async with timeout(constants.ASYNC_TIMEOUT):
             html = await fetch(session=session, url=url)
             text = sanitize(html=html, plaintext=True)
-            score = await score_text(morph=morph, text=text, negative=charged_words)
+            async with measure_execution_time():
+                score = await score_text(morph=morph, text=text, negative=charged_words)
+
     except aiohttp.ClientError:
         about['Статус'] = statuses.ProcessingStatus.FETCH_ERROR.value
     except adapters.ArticleNotFound:
