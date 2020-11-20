@@ -39,7 +39,7 @@ async def fetch(session: aiohttp.ClientSession, url: str):
 
 
 async def score_text(morph: pymorphy2.MorphAnalyzer, text: str, negative: list):
-    words = text_tools.split_by_words(morph=morph, text=text)
+    words = await text_tools.split_by_words(morph=morph, text=text)
     return text_tools.calculate_jaundice_rate(words, negative)
 
 
@@ -60,7 +60,8 @@ async def process_article(
         async with timeout(constants.ASYNC_TIMEOUT):
             html = await fetch(session=session, url=url)
             text = sanitize(html=html, plaintext=True)
-            async with measure_execution_time():
+        async with measure_execution_time():
+            async with timeout(constants.ASYNC_TIMEOUT):
                 score = await score_text(morph=morph, text=text, negative=charged_words)
 
     except aiohttp.ClientError:
