@@ -18,6 +18,7 @@ DAWG-Python = "0.7.*"
 aiofiles = "^0.6.0"
 anyio = "^2.0.2"
 async-timeout = "^3.0.1"
+loguru = "^0.5.3"
 
 [tool.poetry.dev-dependencies]
 autopep8 = "^1.5.4"
