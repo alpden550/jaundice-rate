@@ -1,9 +1,10 @@
-import pytest
-import pymorphy2
 import aiohttp
-from articles import process_article, get_words
-import asyncio
+import pymorphy2
+import pytest
+
 import constants
+from articles import process_article, get_words
+
 
 @pytest.fixture
 async def session():
