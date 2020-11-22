@@ -4,7 +4,7 @@ from aiohttp_utils import run
 from anyio import create_task_group
 
 import constants
-from main import get_words, process_article
+from articles import get_words, process_article
 
 
 async def index(request: web.Request):
