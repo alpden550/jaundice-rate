@@ -49,6 +49,7 @@ async def process_article(
         charged_words: list,
         morph: pymorphy2.MorphAnalyzer,
         results: list,
+        max_timeout: int = constants.ASYNC_TIMEOUT,
 ):
     about = {
         "URL": url,
@@ -57,11 +58,11 @@ async def process_article(
         "Статус": None,
     }
     try:
-        async with timeout(constants.ASYNC_TIMEOUT):
+        async with timeout(max_timeout):
             html = await fetch(session=session, url=url)
             text = sanitize(html=html, plaintext=True)
         async with measure_execution_time():
-            async with timeout(constants.ASYNC_TIMEOUT):
+            async with timeout(max_timeout):
                 score = await score_text(morph=morph, text=text, negative=charged_words)
 
     except aiohttp.ClientError:
