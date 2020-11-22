@@ -10,5 +10,5 @@ TEST_ARTICLES = [
     "https://inosmi.ru/politic/20201119/248573102.html",
 ]
 
-ASYNC_TIMEOUT = 5
+ASYNC_TIMEOUT = 3
 URLS_LIMIT = 10
