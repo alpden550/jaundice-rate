@@ -1,7 +1,5 @@
 # Фильтр желтушных новостей
 
-[TODO. Опишите проект, схему работы]
-
 Пока поддерживается только один новостной сайт - [ИНОСМИ.РУ](https://inosmi.ru/). Для него разработан специальный адаптер, умеющий выделять текст статьи на фоне остальной HTML разметки. Для других новостных сайтов потребуются новые адаптеры, все они будут находиться в каталоге `adapters`. Туда же помещен код для сайта ИНОСМИ.РУ: `adapters/inosmi_ru.py`.
 
 В перспективе можно создать универсальный адаптер, подходящий для всех сайтов, но его разработка будет сложной и потребует дополнительных времени и сил.
@@ -12,28 +10,44 @@
 
 Первым шагом установите пакеты:
 
-```python3
+```bash
 pip install -r requirements.txt
+```
+
+Если имеется Poetry:
+
+```bash
+poetry install
 ```
 
 # Как запустить
 
-```python3
-python main.py
+```bash
+python server.py
 ```
+
+В браузере перейти по адресу `http://127.0.0.1:5000/` и добавить query parameter urls
+
+Пример:
+
+`
+http://127.0.0.1:5000/?urls=http://example.com,https://inosmi.ru/politic/20201119/248572409.html,https://inosmi.ru/social/20201119/248573478.html,https://inosmi.ru/politic/20201119/248573249.html,https://inosmi.ru/military/20201119/248572686.html,https://inosmi.ru/politic/20201119/248573102.html
+`
+
+Максимальное количество – 10.
 
 # Как запустить тесты
 
 Для тестирования используется [pytest](https://docs.pytest.org/en/latest/), тестами покрыты фрагменты кода сложные в отладке: text_tools.py и адаптеры. Команды для запуска тестов:
 
-```
-python -m pytest adapters/inosmi_ru.py
-```
-
-```
-python -m pytest text_tools.py
+```bash
+pytest tests/test_process_ariticles.py 
 ```
 
-# Цели проекта
+```bash
+pytest adapters/inosmi_ru.py
+```
 
-Код написан в учебных целях. Это урок из курса по веб-разработке — [Девман](https://dvmn.org).
+```bash
+pytest text_tools.py
+```
