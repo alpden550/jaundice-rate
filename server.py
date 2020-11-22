@@ -1,5 +1,6 @@
 import pymorphy2
 from aiohttp import web, ClientSession
+from aiohttp_utils import run
 
 import constants
 from main import get_words, process_article
@@ -26,4 +27,4 @@ app.add_routes(
 )
 
 if __name__ == '__main__':
-    web.run_app(app)
+    run(app, reload=True, app_uri="server:app")
